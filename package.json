@@ -1,0 +1,24 @@
+{
+  "name": "swipe_gestures",
+  "version": "0.0.0",
+  "description": "html5 mobile swipe-gestures",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangkai1995/mobile-SwipeGestures.git"
+  },
+  "keywords": [
+    "html5",
+    "mobile",
+    "swipe-gestures"
+  ],
+  "author": "wangkai",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wangkai1995/mobile-SwipeGestures/issues"
+  },
+  "homepage": "https://github.com/wangkai1995/mobile-SwipeGestures#readme"
+}
