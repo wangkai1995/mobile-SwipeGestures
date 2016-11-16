@@ -45,11 +45,50 @@
         width: 100%;
         height: auto;
         overflow: hidden;
+        .test{
+            padding: 15px;
+            width: auto;
+        }
+        .red{
+            background-color: #f30;
+        }
+        .gay{
+            background-color: #888888;
+        }
+        .blue{
+            background-color: #3333FF;
+        }
+        .yellow{
+            background-color: #FFFF33;
+        }
     }
     
 }
 
+
+
 .swipe-container{
-    width: 100%;
-    height: 100%;
+    position: relative;
+    margin: 0 auto;
+    overflow: hidden;
+    display: flex;
+    -webkit-transition-timing-function: ease-out;
+    -moz-transition-timing-function: ease-out;
+    -ms-transition-timing-function: ease-out;
+    -o-transition-timing-function: ease-out;
+    transition-timing-function: ease-out;
+    -webkit-transform: translate3d(0,0,0);
+    -moz-transform: translate3d(0,0,0);
+    -o-transform: translate(0,0);
+    -ms-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+    .swipe-item{
+        display: block;
+        width: 100%;
+        height: 100%;
+        -webkit-flex-shrink: 0;
+        -ms-flex: 0 0 auto;
+        flex-shrink: 0;
+        box-sizing: border-box;
+    }
 }
