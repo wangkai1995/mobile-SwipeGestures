@@ -20,5 +20,19 @@
   "bugs": {
     "url": "https://github.com/wangkai1995/mobile-SwipeGestures/issues"
   },
-  "homepage": "https://github.com/wangkai1995/mobile-SwipeGestures#readme"
+  "homepage": "https://github.com/wangkai1995/mobile-SwipeGestures#readme",
+  "dependencies": {
+    "browser-sync": "^2.18.1",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-htmlhint": "^0.3.1",
+    "gulp-htmlmin": "^3.0.0",
+    "gulp-jshint": "^2.0.4",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-notify": "^2.2.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.3.2",
+    "gulp-sourcemaps": "^2.2.0",
+    "gulp-uglify": "^2.0.0"
+  }
 }
