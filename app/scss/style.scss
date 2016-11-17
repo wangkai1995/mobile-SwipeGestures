@@ -4,7 +4,8 @@
     left: 0px;
     right: 0px;
     height: 44px;
-    background-color:  #00FFFF;
+    color:  #CC0033;
+    border-bottom: 1px solid #c8c8c8;
     li{
         float: left;
         width: 25%;
@@ -66,29 +67,34 @@
 }
 
 
-
-.swipe-container{
+.swipe-war{
     position: relative;
     margin: 0 auto;
     overflow: hidden;
-    display: flex;
-    -webkit-transition-timing-function: ease-out;
-    -moz-transition-timing-function: ease-out;
-    -ms-transition-timing-function: ease-out;
-    -o-transition-timing-function: ease-out;
-    transition-timing-function: ease-out;
-    -webkit-transform: translate3d(0,0,0);
-    -moz-transform: translate3d(0,0,0);
-    -o-transform: translate(0,0);
-    -ms-transform: translate3d(0,0,0);
-    transform: translate3d(0,0,0);
-    .swipe-item{
-        display: block;
+    .swipe-container{
+        position: relative;
+        display: flex;
         width: 100%;
         height: 100%;
-        -webkit-flex-shrink: 0;
-        -ms-flex: 0 0 auto;
-        flex-shrink: 0;
-        box-sizing: border-box;
+        box-sizing: content-box;
+        -webkit-transition-timing-function: ease-out;
+        -moz-transition-timing-function: ease-out;
+        -ms-transition-timing-function: ease-out;
+        -o-transition-timing-function: ease-out;
+        transition-timing-function: ease-out;
+        -webkit-transform: translate3d(0,0,0);
+        -moz-transform: translate3d(0,0,0);
+        -o-transform: translate(0,0);
+        -ms-transform: translate3d(0,0,0);
+        transform: translate3d(0,0,0);
+        .swipe-item{
+            display: block;
+            width: auto;
+            height: 100%;
+            -webkit-flex-shrink: 0;
+            -ms-flex: 0 0 auto;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
     }
 }
