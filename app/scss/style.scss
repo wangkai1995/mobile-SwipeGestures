@@ -94,6 +94,11 @@
         -webkit-box-sizing: content-box;
         -moz-box-sizing: content-box;
         box-sizing: content-box;
+        transition: all .5s linear!important;
+        -webkit-transition: all .5s linear!important;
+        -moz-transition: all .5s linear!important;
+        -ms-transition: all .5s linear!important;
+        -o-transition: all .5s linear!important;
         -webkit-transform: translate3d(0,0,0);
         -moz-transform: translate3d(0,0,0);
         -o-transform: translate(0,0);
@@ -101,7 +106,7 @@
         transform: translate3d(0,0,0);
         .swipe-item{
             display: block;
-            width: auto;
+            width: 200px;
             height: 100%;
             -webkit-flex-shrink: 0;
             -ms-flex: 0 0 auto;

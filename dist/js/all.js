@@ -84,7 +84,7 @@ function Swipe(config){
             }
 
             //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-            container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px)');
+            container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration 300ms;');
 
         }else{
             //如果是上下滑动
@@ -115,7 +115,7 @@ function Swipe(config){
             if( Math.abs(moveX) > Math.abs(moveY) ){   
                 //右滑动距离限制
 
-                container.moveLeft  += moveX;
+                container.moveLeft  += moveX + moveX/5;
 
                 if(container.moveLeft > 0){
                     container.moveLeft = 0;
@@ -127,7 +127,7 @@ function Swipe(config){
                 console.log(container.moveLeft );
 
                 //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px)');
+                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px);');
             }else{
                 //上下滑动
 
