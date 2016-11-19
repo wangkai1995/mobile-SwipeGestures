@@ -1,13 +1,28 @@
 
 window.onload = function(){
-    var swipe = Swipe();
+    var swipe = Swipe({
+        rollBack: 150,
+    });
 };
 
 
-function Swipe(config){
+function Swipe(cfg){
 
     /****************参数配置********************/
     var swipe = {};
+
+    var config = {
+        //滑动时间 ms
+        slideTime : cfg.slideTime ? cfg.slideTime : 500,
+        //回滚阀值 回滚使用在按住不松手移动阶段  px
+        rollBack : cfg.rollBack? cfg.rollBack : 100,
+        //回滚阀值回退时间 回滚使用在按住不松手移动阶段   ms 
+        rollBackDelay: cfg.rollBackDelay? cfg.rollBackDelay : 300,
+        //是否启用按住滑动
+        pressSwipeFlag: cfg.pressSwipeFlag? cfg.pressSwipeFlag : true,
+        //松手慢速滑动 根据pressSwipeFlag 判断取反
+        slowSlideFlag : cfg.pressSwipeFlag? false : true
+    };
 
     var viem = {
             totalWidth: window.screen.width,
@@ -41,7 +56,17 @@ function Swipe(config){
             time : 0
         };
 
-    /***************公用函数部分******************/  
+    /***************公共函数部分******************/     
+    function isUndefined(obj){
+        //同时过滤null和undef
+        if(obj == 'undefined'){
+            return true;
+        }
+        return false;
+    }
+
+
+    /***************滑动函数部分******************/  
 
     //按住不松开的滑动处理
     //暂未完善，有待修改 上下滑动未处理
@@ -76,15 +101,15 @@ function Swipe(config){
 
             //对拖动做限制
             //container.moveLeft < 0 右拖动限制
-            //Math.abs(container.moveLeft) + viem.totalWidth ) < item.totalWidth  左拖动限制
-            if(container.moveLeft > 0){
-                container.moveLeft = 0;
-            }else if( (-container.moveLeft + viem.totalWidth) > item.totalWidth){
-                container.moveLeft = -(item.totalWidth-viem.totalWidth);
+            //Math.abs(container.moveLeft) + viem.totalWidth ) < item.totalWidth  左拖动限制            
+            if(container.moveLeft - config.rollBack > 0){
+                container.moveLeft = config.rollBack;
+            }else if( (-container.moveLeft + viem.totalWidth - config.rollBack) > item.totalWidth){
+                container.moveLeft = -(item.totalWidth-viem.totalWidth) - config.rollBack;
             }
 
             //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-            container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration 300ms;');
+            container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.slideTime+'ms;');
 
         }else{
             //如果是上下滑动
@@ -101,7 +126,9 @@ function Swipe(config){
         if(moveTime < 500){
             quickSlide();
         }else{
-            slowSlide();
+            if(config.slowSlideFlag){
+                slowSlide();
+            }
         }
     }  
 
@@ -126,7 +153,7 @@ function Swipe(config){
                 }
 
                 //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px);');
+                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.rollBackDelay+'ms;');
             }else{
                 //上下滑动
             }
@@ -153,7 +180,7 @@ function Swipe(config){
                 }
 
                 //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px);');
+                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.rollBackDelay+'ms;');
             }else{
                 //上下滑动
             }

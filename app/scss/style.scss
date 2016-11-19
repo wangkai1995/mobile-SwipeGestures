@@ -14,7 +14,6 @@
         margin-top: 12px;
     }
 }
-
 .war-footer{
     position: absolute;
     bottom: 0px;
@@ -32,8 +31,6 @@
         margin-top: 12px;
     }
 }
-
-
 .war-container{
     position: absolute;
     top:44px;
@@ -62,8 +59,7 @@
         .yellow{
             background-color: #FFFF33;
         }
-    }
-    
+    }   
 }
 
 
@@ -97,11 +93,11 @@
         -webkit-box-sizing: content-box;
         -moz-box-sizing: content-box;
         box-sizing: content-box;
-        transition: all .5s ease-out!important;
-        -webkit-transition: all .5s ease-out!important;
-        -moz-transition: all .5s ease-out!important;
-        -ms-transition: all .5s ease-out!important;
-        -o-transition: all .5s ease-out!important;
+        transition: all .5s ease-out;
+        -webkit-transition: all .5s ease-out;
+        -moz-transition: all .5s ease-out;
+        -ms-transition: all .5s ease-out;
+        -o-transition: all .5s ease-out;
         -webkit-transform: translate3d(0,0,0);
         -moz-transform: translate3d(0,0,0);
         -o-transform: translate(0,0);
@@ -109,7 +105,7 @@
         transform: translate3d(0,0,0);
         .swipe-item{
             display: block;
-            width: 200px;
+            width: auto;
             height: 100%;
             -webkit-flex-shrink: 0;
             -ms-flex: 0 0 auto;
@@ -126,3 +122,7 @@
     width: 100%;
     height: auto;
 }
+
+
+
+
