@@ -10,18 +10,27 @@ function Swipe(cfg){
 
     /****************参数配置********************/
     var swipe = {};
+    //判断参数是否设置
+    //@未定义返回true 定义返回false
+    function isUndefined(obj){
+        //同时过滤null和undefined
+        if(typeof obj == 'undefined'){
+            return true;
+        }
+        return false;
+    }
 
     var config = {
         //滑动时间 ms
-        slideTime : cfg.slideTime ? cfg.slideTime : 500,
+        slideTime : !isUndefined(cfg.slideTime)? cfg.slideTime : 500,
         //回滚阀值 回滚使用在按住不松手移动阶段  px
-        rollBack : cfg.rollBack? cfg.rollBack : 100,
+        rollBack : !isUndefined(cfg.rollBack)? cfg.rollBack : 100,
         //回滚阀值回退时间 回滚使用在按住不松手移动阶段   ms 
-        rollBackDelay: cfg.rollBackDelay? cfg.rollBackDelay : 300,
+        rollBackDelay: !isUndefined(cfg.rollBackDelay)? cfg.rollBackDelay : 300,
         //是否启用按住滑动
-        pressSwipeFlag: cfg.pressSwipeFlag? cfg.pressSwipeFlag : true,
+        pressSwipeFlag: !isUndefined(cfg.pressSwipeFlag)? cfg.pressSwipeFlag : true,
         //松手慢速滑动 根据pressSwipeFlag 判断取反
-        slowSlideFlag : cfg.pressSwipeFlag? false : true
+        slowSlideFlag : !isUndefined(cfg.pressSwipeFlag)? true : false
     };
 
     var viem = {
@@ -57,13 +66,7 @@ function Swipe(cfg){
         };
 
     /***************公共函数部分******************/     
-    function isUndefined(obj){
-        //同时过滤null和undef
-        if(obj == 'undefined'){
-            return true;
-        }
-        return false;
-    }
+    
 
 
     /***************滑动函数部分******************/  
@@ -128,6 +131,9 @@ function Swipe(cfg){
         }else{
             if(config.slowSlideFlag){
                 slowSlide();
+            }else{
+                //回弹
+                rollBackSlide();
             }
         }
     }  
@@ -186,6 +192,29 @@ function Swipe(cfg){
             }
     }
 
+    //滑动回弹
+    function rollBackSlide(){
+        //判断上下滑动还是左右滑动
+        var moveX  = end.x - start.x,
+            moveY = end.y - start.y;
+
+            //左右滑动
+            if( Math.abs(moveX) > Math.abs(moveY) ){  
+                if(container.moveLeft > 0){
+                    container.moveLeft = 0;
+                //左滑动距离限制
+                }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
+                    container.moveLeft = -(item.totalWidth-viem.totalWidth);
+                }
+
+                //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
+                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.rollBackDelay+'ms;');
+            }else{
+            //上下滑动
+
+            }   
+    }
+
     /*****************初始化**********************/    
     function init(select){
         container.war = document.querySelectorAll('.swipe-war')[0];
@@ -197,6 +226,7 @@ function Swipe(cfg){
             item.totalWidth += item.dom[i].clientWidth;
         }
 
+        console.log(config);
         console.log(container);
         console.log(item);
         console.log(viem);
@@ -229,7 +259,9 @@ function Swipe(cfg){
             clientY = event.changedTouches[0].clientY;
 
         //这种方式是按住不放移动
-        pressSwipe(clientX,clientY);
+        if(config.pressSwipeFlag){
+            pressSwipe(clientX,clientY);
+        }
     }
     //滑动结束事件
     function touchEndEvent(event){
