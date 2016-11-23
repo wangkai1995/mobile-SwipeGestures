@@ -1,7 +1,7 @@
 
 window.onload = function(){
     var swipe = Swipe({
-        rollBack: 150,
+        rollBack: 150
     });
 };
 
@@ -21,6 +21,8 @@ function Swipe(cfg){
     }
 
     var config = {
+        //快速滑动和慢速滑动的判断阀值
+        quickIsSlowDelay : !isUndefined(cfg.quickIsSlowDelay)? cfg.quickIsSlowDelay : 300,
         //滑动时间 ms
         slideTime : !isUndefined(cfg.slideTime)? cfg.slideTime : 500,
         //回滚阀值 回滚使用在按住不松手移动阶段  px
@@ -30,7 +32,9 @@ function Swipe(cfg){
         //是否启用按住滑动
         pressSwipeFlag: !isUndefined(cfg.pressSwipeFlag)? cfg.pressSwipeFlag : true,
         //松手慢速滑动 根据pressSwipeFlag 判断取反
-        slowSlideFlag : !isUndefined(cfg.pressSwipeFlag)? true : false
+        slowSlideFlag : !isUndefined(cfg.pressSwipeFlag)? true : false,
+        //是否启用内连滑动模式
+        inlineMode : !isUndefined(cfg.inlineMode)? cfg.inlineMode : false
     };
 
     var viem = {
@@ -47,6 +51,7 @@ function Swipe(cfg){
         },
         item = {
             dom: '',
+            length: 0,
             totalWidth: 0
         };
 
@@ -65,138 +70,137 @@ function Swipe(cfg){
             time : 0
         };
 
-    /***************公共函数部分******************/     
-    
-
-
-    /***************滑动函数部分******************/  
-
-    //按住不松开的滑动处理
-    //暂未完善，有待修改 上下滑动未处理
-    function pressSwipe(clientX,clientY){
-        //这种方式是及时移动 在安卓下面体验不太好 尝试另外一种 在touchEndEvent 中做处理
-        //如果是左右滑动
-        if( Math.abs(clientX-start.x) > Math.abs(clientY-start.y) ){
-
-            if(clientX-start.x > 0){
-
-                //向左滑动
-                if(move.x  === 0){
-                    container.moveLeft += clientX-start.x;
-                    move.x  = clientX;
-                }else{ 
-                    container.moveLeft += clientX-move.x;
-                    move.x  = clientX;
-                }
-
-            }else{
-
-                //向右滑动
-                if(move.x  === 0){
-                    container.moveLeft += Math.abs(clientX)-Math.abs(start.x);
-                    move.x  = clientX;
-                }else{ 
-                    container.moveLeft += Math.abs(clientX)-Math.abs(move.x);
-                    move.x  = clientX;
-                }
-
-            }
-
-            //对拖动做限制
-            //container.moveLeft < 0 右拖动限制
-            //Math.abs(container.moveLeft) + viem.totalWidth ) < item.totalWidth  左拖动限制            
-            if(container.moveLeft - config.rollBack > 0){
-                container.moveLeft = config.rollBack;
-            }else if( (-container.moveLeft + viem.totalWidth - config.rollBack) > item.totalWidth){
-                container.moveLeft = -(item.totalWidth-viem.totalWidth) - config.rollBack;
-            }
-
-            //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-            container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.slideTime+'ms;');
-
-        }else{
-            //如果是上下滑动
-            console.log( Math.abs(clientY-start.y),'y' );
-        }
+    /***************公共函数部分******************/
+    //设置容器DOM的transform   
+    function setTransform(move,delay){
+        //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
+        container.dom.setAttribute('style','-webkit-transform: translate3d('+move+'px, 0px, 0px); transition-duration :'+delay+'ms;');
     }
 
-    //松手之后的滑动处理
-    function letGoSwipe(){
-        //判断快速滑动还是慢速滑动
-        //@阀值设为500MS
-        var moveTime = end.time - start.time;
 
-        if(moveTime < 500){
-            quickSlide();
-        }else{
-            if(config.slowSlideFlag){
-                slowSlide();
-            }else{
-                //回弹
-                rollBackSlide();
-            }
-        }
-    }  
+    /***************内连模式滑动函数部分******************/ 
+    var inline = {
+        //按住不松开的滑动处理
+        //暂未完善，有待修改 上下滑动未处理
+        pressSwipe : function(clientX,clientY){
+            //这种方式是及时移动
+            //如果是左右滑动
+            if( Math.abs(clientX-start.x) > Math.abs(clientY-start.y) ){
 
-    //快速滑动 滑动距离=移动距离X2
-    //上下滑动未处理
-    function quickSlide(){
-        //判断上下滑动还是左右滑动
-        var moveX  = end.x - start.x,
-            moveY = end.y - start.y;
+                if(clientX-start.x > 0){
 
-            //左右滑动
-            if( Math.abs(moveX) > Math.abs(moveY) ){   
-                //右滑动距离限制
+                    //向左滑动
+                    if(move.x  === 0){
+                        container.moveLeft += clientX-start.x;
+                        move.x  = clientX;
+                    }else{ 
+                        container.moveLeft += clientX-move.x;
+                        move.x  = clientX;
+                    }
 
-                container.moveLeft  += moveX*2;
+                }else{
 
-                if(container.moveLeft > 0){
-                    container.moveLeft = 0;
-                //左滑动距离限制
-                }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
-                    container.moveLeft = -(item.totalWidth-viem.totalWidth);
+                    //向右滑动
+                    if(move.x  === 0){
+                        container.moveLeft += Math.abs(clientX)-Math.abs(start.x);
+                        move.x  = clientX;
+                    }else{ 
+                        container.moveLeft += Math.abs(clientX)-Math.abs(move.x);
+                        move.x  = clientX;
+                    }
+
                 }
 
-                //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.rollBackDelay+'ms;');
-            }else{
-                //上下滑动
-            }
-    }
-
-    //慢速滑动 滑动距离=移动距离X1
-    //上下滑动未处理
-    function slowSlide(){
-        //判断上下滑动还是左右滑动
-        var moveX  = end.x - start.x,
-            moveY = end.y - start.y;
-
-            //左右滑动
-            if( Math.abs(moveX) > Math.abs(moveY) ){   
-                //右滑动距离限制
-
-                container.moveLeft  += moveX + moveX/5;
-
-                if(container.moveLeft > 0){
-                    container.moveLeft = 0;
-                //左滑动距离限制
-                }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
-                    container.moveLeft = -(item.totalWidth-viem.totalWidth);
+                //对拖动做限制
+                //container.moveLeft < 0 右拖动限制
+                //Math.abs(container.moveLeft) + viem.totalWidth ) < item.totalWidth  左拖动限制            
+                if(container.moveLeft - config.rollBack > 0){
+                    container.moveLeft = config.rollBack;
+                }else if( (-container.moveLeft + viem.totalWidth - config.rollBack) > item.totalWidth){
+                    container.moveLeft = -(item.totalWidth-viem.totalWidth) - config.rollBack;
                 }
 
-                //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.rollBackDelay+'ms;');
+                setTransform(container.moveLeft ,config.rollBackDelay);
             }else{
-                //上下滑动
+                //如果是上下滑动
+                console.log( Math.abs(clientY-start.y),'y' );
             }
-    }
+        },
+        //松手之后的滑动处理
+        letGoSwipe : function(){
+            //判断快速滑动还是慢速滑动
+            //@阀值设为500MS
+            var moveTime = end.time - start.time;
 
-    //滑动回弹
-    function rollBackSlide(){
-        //判断上下滑动还是左右滑动
-        var moveX  = end.x - start.x,
-            moveY = end.y - start.y;
+            if(moveTime < config.quickIsSlowDelay){
+                //快速滑动
+                this.quickSlide();
+            }else{
+                if(config.slowSlideFlag){
+                    //慢速滑动
+                    this.slowSlide();
+                }else{
+                    //回弹
+                    this.rollBackSlide();
+                }
+            }
+        },
+        //快速滑动 滑动距离=移动距离X2
+        //上下滑动未处理
+        quickSlide : function(){
+            //判断上下滑动还是左右滑动
+            var moveX  = end.x - start.x,
+                moveY = end.y - start.y;
+
+                //左右滑动
+                if( Math.abs(moveX) > Math.abs(moveY) ){   
+                    //右滑动距离限制
+
+                    container.moveLeft  += moveX*2;
+
+                    if(container.moveLeft > 0){
+                        container.moveLeft = 0;
+                    //左滑动距离限制
+                    }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
+                        container.moveLeft = -(item.totalWidth-viem.totalWidth);
+                    }
+
+                    setTransform(container.moveLeft ,config.rollBackDelay);
+                }else{
+                    //上下滑动
+                }
+        },
+        //慢速滑动 滑动距离=移动距离X1
+        //上下滑动未处理
+        slowSlide : function(){
+            //判断上下滑动还是左右滑动
+            var moveX  = end.x - start.x,
+                moveY = end.y - start.y;
+
+                //左右滑动
+                if( Math.abs(moveX) > Math.abs(moveY) ){   
+                    //右滑动距离限制
+
+                    container.moveLeft  += moveX + moveX/5;
+
+                    if(container.moveLeft > 0){
+                        container.moveLeft = 0;
+                    //左滑动距离限制
+                    }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
+                        container.moveLeft = -(item.totalWidth-viem.totalWidth);
+                    }
+
+                    setTransform(container.moveLeft ,config.rollBackDelay);
+
+                }else{
+                    //上下滑动
+                }
+        },
+        //滑动回弹
+        rollBackSlide : function(){
+            //判断上下滑动还是左右滑动
+            var moveX  = end.x - start.x,
+                moveY = end.y - start.y;
 
             //左右滑动
             if( Math.abs(moveX) > Math.abs(moveY) ){  
@@ -207,14 +211,202 @@ function Swipe(cfg){
                     container.moveLeft = -(item.totalWidth-viem.totalWidth);
                 }
 
-                //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
-                container.dom.setAttribute('style','-webkit-transform: translate3d('+container.moveLeft+'px, 0px, 0px); transition-duration :'+config.rollBackDelay+'ms;');
+                setTransform(container.moveLeft ,config.rollBackDelay);
             }else{
             //上下滑动
 
-            }   
-    }
+            } 
+        }
+    };
+    /***************块级模式滑动函数部分******************/
+    //块级滑动没有慢速滑动
+    //按住滑动不进行翻页 翻页在回弹中进行
+    var block = {
+        //滑动元素索引
+        index : 0,
+        moveleft : 0,
+        //按住不松开的滑动处理
+        //暂未完善 这里还有问题需要处理
+        pressSwipe : function(clientX,clientY){
+            //这种方式是及时移动
+            //如果是左右滑动
+            if(this.moveleft === 0){
+               this.moveleft = container.moveLeft;
+            }
+            if( Math.abs(clientX-start.x) > Math.abs(clientY-start.y) ){
+                //临时变量 不计入累加
+                 if(clientX-start.x > 0){
 
+                    //向左滑动
+                    if(move.x  === 0){
+                        this.moveleft  += clientX-start.x;
+                        move.x  = clientX;
+                    }else{ 
+                        this.moveleft  += clientX-move.x;
+                        move.x  = clientX;
+                    }
+
+                }else{
+
+                    //向右滑动
+                    if(move.x  === 0){
+                        this.moveleft  += Math.abs(clientX)-Math.abs(start.x);
+                        move.x  = clientX;
+                    }else{ 
+                        this.moveleft  += Math.abs(clientX)-Math.abs(move.x);
+                        move.x  = clientX;
+                    }
+
+                }
+
+                //块级对拖动做限制
+                //container.moveLeft < 0 右拖动限制
+                //Math.abs(container.moveLeft) + viem.totalWidth ) < clientWidth 左拖动限制 
+                var clientWidth  = 0;
+                if(this.index === 0){
+                    clientWidth = item.dom[this.index].clientWidth;
+                }else{
+                    for(var i=0; i<this.index;i++){
+                        clientWidth += item.dom[i].clientWidth;
+                    }
+                }
+                
+                console.log(clientWidth);
+                console.log(this.moveleft);
+
+                // console.log(container.moveLeft);     
+                if( this.moveleft  + config.rollBack > clientWidth){
+                    this.moveleft  = config.rollBack;
+                }else if( -(this.moveleft  + config.rollBack) > clientWidth ){
+                    this.moveleft  = -(clientWidth - config.rollBack); 
+                }
+
+                setTransform(this.moveleft  ,config.rollBackDelay);
+
+            }else{
+                //如果是上下滑动
+                console.log( Math.abs(clientY-start.y),'y' );
+            }
+        },
+        //松手之后的滑动处理
+        letGoSwipe :function(){
+            //判断快速滑动还是慢速滑动
+            //@阀值设为500MS
+            var moveTime = end.time - start.time;
+
+            this.moveleft = container.moveLeft;
+            if(moveTime < config.quickIsSlowDelay){
+                //快速滑动
+                this.quickSlide();
+            }else{
+                //回弹
+                this.rollBackSlide();
+            }
+        },
+        //快速滑动
+        //上下滑动未处理
+        quickSlide :function(){
+            //判断上下滑动还是左右滑动
+            var moveX  = end.x - start.x,
+                moveY = end.y - start.y;
+            //左右滑动
+            if( Math.abs(moveX) > Math.abs(moveY) ){   
+                //左右滑动
+                //计算滑动距离 翻页还是后退
+                //是否启用按住滑动
+                if(!config.pressSwipeFlag){
+                    var move = item.dom[this.index].clientWidth;
+                    if(moveX > 0){
+                       container.moveLeft += move;
+                       this.index--;
+                       if(this.index < 0){
+                            this.index = 0;
+                       } 
+                    }else{
+                       container.moveLeft -= move; 
+                       this.index++;
+                       if(this.index > item.length-1){
+                            this.index = item.length-1;
+                       }
+                    }
+                }else{
+                    var move = 0;
+                    for(var i =0; i<this.index ;i++){
+                        move += item.dom[i].clientWidth;
+                    }
+                    if(moveX > 0){
+                       container.moveLeft += move-Math.abs(container.moveLeft);
+                       this.index--;
+                       if(this.index < 0){
+                            this.index = 0;
+                       } 
+                    }else{
+                       container.moveLeft -= move-Math.abs(container.moveLeft); 
+                       this.index++;
+                       if(this.index > item.length-1){
+                            this.index = item.length-1;
+                       }
+                    }
+                }
+                
+
+                //左右滑动限制
+                if( (-container.moveLeft)+viem.totalWidth  >= item.totalWidth ){
+                    //左滑动
+                    container.moveLeft = -(item.totalWidth - viem.totalWidth);
+                }else if(container.moveLeft > 0){
+                    //右滑动
+                    container.moveLeft = 0;
+                }
+                //开始滑动
+                setTransform(container.moveLeft ,config.rollBackDelay);
+            }else{
+                //上下滑动
+            }
+        },
+        //滑动回弹
+        rollBackSlide : function(){
+            //判断上下滑动还是左右滑动
+            var moveX  = end.x - start.x,
+                moveY = end.y - start.y;
+
+            //左右滑动
+            if( Math.abs(moveX) > Math.abs(moveY) ){ 
+
+                var move = 0,
+                    len = this.index===0? 1 : this.index;
+                for(var i =0; i<len ;i++){
+                    move += item.dom[i].clientWidth;
+                }
+                console.log(move);
+                if(moveX > 0){
+                   container.moveLeft += move-Math.abs(container.moveLeft);
+                   this.index--;
+                   if(this.index < 0){
+                        this.index = 0;
+                   } 
+                }else{
+                   container.moveLeft -= move-Math.abs(container.moveLeft); 
+                   this.index++;
+                   if(this.index > item.length-1){
+                        this.index = item.length-1;
+                   }
+                }
+
+                //右滑动距离限制
+                if(container.moveLeft > 0){
+                    container.moveLeft = 0;
+                //左滑动距离限制
+                }else if( (-container.moveLeft)+viem.totalWidth  >= item.totalWidth  ){
+                    container.moveLeft = -(item.totalWidth - viem.totalWidth);
+                }
+
+                setTransform(container.moveLeft ,config.rollBackDelay);
+            }else{
+            //上下滑动
+            } 
+        }
+    };
     /*****************初始化**********************/    
     function init(select){
         container.war = document.querySelectorAll('.swipe-war')[0];
@@ -222,6 +414,7 @@ function Swipe(cfg){
         container.height = container.dom.clientHeight;
         container.width = container.dom.clientWidth;
         item.dom= document.querySelectorAll('.swipe-container .swipe-item');
+        item.length = item.dom.length;
         for(var i=0,len =item.dom.length; i<len ;i++){
             item.totalWidth += item.dom[i].clientWidth;
         }
@@ -260,7 +453,12 @@ function Swipe(cfg){
 
         //这种方式是按住不放移动
         if(config.pressSwipeFlag){
-            pressSwipe(clientX,clientY);
+            //判断是块级滑动还是内连
+            if(config.inlineMode){
+                inline.pressSwipe(clientX, clientY);
+            }else{
+                block.pressSwipe(clientX, clientY);
+            }
         }
     }
     //滑动结束事件
@@ -271,9 +469,13 @@ function Swipe(cfg){
         end.y = event.changedTouches[0].clientY;
         end.time = new Date().getTime();
         //松手之后
-        letGoSwipe();
+        //判断是块级滑动还是内连
+        if(config.inlineMode){
+            inline.letGoSwipe();
+        }else{
+            block.letGoSwipe();
+        }
     }
-
 
     /******************初始化运行*******************/
 
