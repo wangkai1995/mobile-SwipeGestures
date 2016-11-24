@@ -274,11 +274,20 @@ function Swipe(cfg){
                 console.log(clientWidth);
                 console.log(this.moveleft);
 
-                // console.log(container.moveLeft);     
-                if( this.moveleft  + config.rollBack > clientWidth){
-                    this.moveleft  = config.rollBack;
-                }else if( -(this.moveleft  + config.rollBack) > clientWidth ){
-                    this.moveleft  = -(clientWidth - config.rollBack); 
+
+                if(this.index === 0){
+                    // console.log(container.moveLeft);     
+                    if( this.moveleft  + config.rollBack > clientWidth){
+                        this.moveleft  = clientWidth-config.rollBack;
+                    }else if( -(this.moveleft  + config.rollBack) > clientWidth ){
+                        this.moveleft  = -(clientWidth - config.rollBack); 
+                    }
+                }else{
+                    if( -(this.moveleft)  + config.rollBack*2 > clientWidth){
+                        this.moveleft  = -(clientWidth-config.rollBack*2);
+                    }else if( -(this.moveleft  + config.rollBack) > clientWidth ){
+                        this.moveleft  = -(clientWidth - config.rollBack); 
+                    }
                 }
 
                 setTransform(this.moveleft  ,config.rollBackDelay);
@@ -365,6 +374,7 @@ function Swipe(cfg){
             }
         },
         //滑动回弹
+        //配合按住不松开滑动使用 暂不完善
         rollBackSlide : function(){
             //判断上下滑动还是左右滑动
             var moveX  = end.x - start.x,
