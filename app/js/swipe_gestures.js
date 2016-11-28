@@ -1,7 +1,8 @@
 
 window.onload = function(){
     var swipe = Swipe({
-        rollBack: 150
+        rollBack: 150,
+        inlineMode : true
     });
 };
 
@@ -76,6 +77,62 @@ function Swipe(cfg){
         //这里还需要修改 IOS9.0以下和安卓5 以下需要加webkit 以上则不需要加
         container.dom.setAttribute('style','-webkit-transform: translate3d('+move+'px, 0px, 0px); transition-duration :'+delay+'ms;');
     }
+    //按住中滑动量计算
+    //@clientX=当前X轴坐标
+    //#返回当前滑动量 正数为向右 负数向左
+    function pressSlideValue(clientX){
+        var value = 0;
+        if(clientX-start.x > 0){
+            //向左滑动
+            if(move.x  === 0){
+                value = clientX-start.x;
+                move.x  = clientX;
+            }else{ 
+                value = clientX-move.x;
+                move.x  = clientX;
+            }
+        }else{
+            //向右滑动
+            if(move.x  === 0){
+                value = Math.abs(clientX)-Math.abs(start.x);
+                move.x  = clientX;
+            }else{ 
+                value = Math.abs(clientX)-Math.abs(move.x);
+                move.x  = clientX;
+            }
+        }
+        return value;
+    }
+    //行级非按住滑动距离限制
+    //@value=滑动量
+    //#返回滑动量(在限制范围内)
+    function inlineSlideLimit(value){
+    	var move = value;
+    	//右方向滑动
+    	if(move > 0){
+            move = 0;
+        //左方向滑动
+        }else if( (Math.abs(move) + viem.totalWidth) > item.totalWidth ){
+            move = -(item.totalWidth-viem.totalWidth);
+        }
+
+        return move;
+    }
+    //行级按住滑动距离限制
+    //@value=滑动量
+    //#返回滑动量(在限制范围内)
+    function inlinePressSlideLimit(value){
+    	var move = value;
+    	//对拖动做限制
+        //container.moveLeft < 0 右拖动限制
+        //Math.abs(container.moveLeft) + viem.totalWidth ) < item.totalWidth  左拖动限制            
+        if(move - config.rollBack > 0){
+            move = config.rollBack;
+        }else if(  (-move + viem.totalWidth - config.rollBack) > item.totalWidth){
+            move = -(item.totalWidth-viem.totalWidth) - config.rollBack;
+        }
+        return move;
+    }
 
 
     /***************内连模式滑动函数部分******************/ 
@@ -87,43 +144,13 @@ function Swipe(cfg){
             //如果是左右滑动
             if( Math.abs(clientX-start.x) > Math.abs(clientY-start.y) ){
 
-                if(clientX-start.x > 0){
-
-                    //向左滑动
-                    if(move.x  === 0){
-                        container.moveLeft += clientX-start.x;
-                        move.x  = clientX;
-                    }else{ 
-                        container.moveLeft += clientX-move.x;
-                        move.x  = clientX;
-                    }
-
-                }else{
-
-                    //向右滑动
-                    if(move.x  === 0){
-                        container.moveLeft += Math.abs(clientX)-Math.abs(start.x);
-                        move.x  = clientX;
-                    }else{ 
-                        container.moveLeft += Math.abs(clientX)-Math.abs(move.x);
-                        move.x  = clientX;
-                    }
-
-                }
-
+                container.moveLeft += pressSlideValue(clientX);
                 //对拖动做限制
-                //container.moveLeft < 0 右拖动限制
-                //Math.abs(container.moveLeft) + viem.totalWidth ) < item.totalWidth  左拖动限制            
-                if(container.moveLeft - config.rollBack > 0){
-                    container.moveLeft = config.rollBack;
-                }else if( (-container.moveLeft + viem.totalWidth - config.rollBack) > item.totalWidth){
-                    container.moveLeft = -(item.totalWidth-viem.totalWidth) - config.rollBack;
-                }
+                container.moveLeft = inlinePressSlideLimit(container.moveLeft);
 
                 setTransform(container.moveLeft ,config.rollBackDelay);
             }else{
-                //如果是上下滑动
-                console.log( Math.abs(clientY-start.y),'y' );
+                //上下滑动未处理
             }
         },
         //松手之后的滑动处理
@@ -157,13 +184,7 @@ function Swipe(cfg){
                     //右滑动距离限制
 
                     container.moveLeft  += moveX*2;
-
-                    if(container.moveLeft > 0){
-                        container.moveLeft = 0;
-                    //左滑动距离限制
-                    }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
-                        container.moveLeft = -(item.totalWidth-viem.totalWidth);
-                    }
+                    container.moveLeft = inlineSlideLimit(container.moveLeft );
 
                     setTransform(container.moveLeft ,config.rollBackDelay);
                 }else{
@@ -182,13 +203,7 @@ function Swipe(cfg){
                     //右滑动距离限制
 
                     container.moveLeft  += moveX + moveX/5;
-
-                    if(container.moveLeft > 0){
-                        container.moveLeft = 0;
-                    //左滑动距离限制
-                    }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
-                        container.moveLeft = -(item.totalWidth-viem.totalWidth);
-                    }
+                    container.moveLeft = inlineSlideLimit(container.moveLeft );
 
                     setTransform(container.moveLeft ,config.rollBackDelay);
 
@@ -203,14 +218,9 @@ function Swipe(cfg){
                 moveY = end.y - start.y;
 
             //左右滑动
-            if( Math.abs(moveX) > Math.abs(moveY) ){  
-                if(container.moveLeft > 0){
-                    container.moveLeft = 0;
-                //左滑动距离限制
-                }else if( (Math.abs(container.moveLeft) + viem.totalWidth) > item.totalWidth ){
-                    container.moveLeft = -(item.totalWidth-viem.totalWidth);
-                }
-
+            if( Math.abs(moveX) > Math.abs(moveY) ){
+            	//限制滑动距离
+            	container.moveLeft = inlineSlideLimit(container.moveLeft );  
                 setTransform(container.moveLeft ,config.rollBackDelay);
             }else{
             //上下滑动
@@ -231,30 +241,8 @@ function Swipe(cfg){
             //这种方式是及时移动
             //如果是左右滑动
             if( Math.abs(clientX-start.x) > Math.abs(clientY-start.y) ){
-                //临时变量 不计入累加
-                 if(clientX-start.x > 0){
 
-                    //向左滑动
-                    if(move.x  === 0){
-                        this.moveleft  += clientX-start.x;
-                        move.x  = clientX;
-                    }else{ 
-                        this.moveleft  += clientX-move.x;
-                        move.x  = clientX;
-                    }
-
-                }else{
-
-                    //向右滑动
-                    if(move.x  === 0){
-                        this.moveleft  += Math.abs(clientX)-Math.abs(start.x);
-                        move.x  = clientX;
-                    }else{ 
-                        this.moveleft  += Math.abs(clientX)-Math.abs(move.x);
-                        move.x  = clientX;
-                    }
-
-                }
+                this.moveleft  += pressSlideValue(clientX);
 
                 //块级对拖动做限制
                 //container.moveLeft < 0 右拖动限制
@@ -270,8 +258,7 @@ function Swipe(cfg){
                 setTransform(container.moveLeft+this.moveleft  ,config.rollBackDelay);
 
             }else{
-                //如果是上下滑动
-                console.log( Math.abs(clientY-start.y),'y' );
+                //上下滑动未处理
             }
         },
         //松手之后的滑动处理
@@ -384,9 +371,6 @@ function Swipe(cfg){
                        }
                     }
                 }
-
-                // console.log(this.index);
-                // console.log(Math.abs(this.moveleft));
 
                 //右滑动距离限制
                 if(container.moveLeft > 0){
