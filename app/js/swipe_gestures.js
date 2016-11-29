@@ -1,8 +1,7 @@
 
 window.onload = function(){
     var swipe = Swipe({
-        rollBack: 150,
-        inlineMode : true
+        rollBack: 150
     });
 };
 
@@ -35,7 +34,9 @@ function Swipe(cfg){
         //松手慢速滑动 根据pressSwipeFlag 判断取反
         slowSlideFlag : !isUndefined(cfg.pressSwipeFlag)? true : false,
         //是否启用内连滑动模式
-        inlineMode : !isUndefined(cfg.inlineMode)? cfg.inlineMode : false
+        inlineMode : !isUndefined(cfg.inlineMode)? cfg.inlineMode : false,
+        //块滑动翻页界限 默认0.3 最大1 最小0
+        blockSlideLimit : !isUndefined(cfg.blockSlideLimit)? cfg.blockSlideLimit : 0.3
     };
 
     var viem = {
@@ -103,16 +104,16 @@ function Swipe(cfg){
         }
         return value;
     }
-    //行级非按住滑动距离限制
+    //非按住滑动距离限制
     //@value=滑动量
     //#返回滑动量(在限制范围内)
-    function inlineSlideLimit(value){
+    function SlideLimit(value){
     	var move = value;
     	//右方向滑动
     	if(move > 0){
             move = 0;
         //左方向滑动
-        }else if( (Math.abs(move) + viem.totalWidth) > item.totalWidth ){
+        }else if( Math.abs(move) + viem.totalWidth > item.totalWidth ){
             move = -(item.totalWidth-viem.totalWidth);
         }
 
@@ -132,6 +133,18 @@ function Swipe(cfg){
             move = -(item.totalWidth-viem.totalWidth) - config.rollBack;
         }
         return move;
+    }
+    //块级按住滑动距离限制
+    //@value=滑动量 @clientWidth=块的长度
+    //#返回滑动量
+    function blockPressSlideLimit(value,clientWidth){
+    	var move = value;
+    	if( value  + config.rollBack > clientWidth){
+            value  = clientWidth-config.rollBack;
+        }else if( -(value) + config.rollBack > clientWidth ){
+            value  = -(clientWidth - config.rollBack); 
+        }
+        return value;
     }
 
 
@@ -184,7 +197,7 @@ function Swipe(cfg){
                     //右滑动距离限制
 
                     container.moveLeft  += moveX*2;
-                    container.moveLeft = inlineSlideLimit(container.moveLeft );
+                    container.moveLeft = SlideLimit(container.moveLeft );
 
                     setTransform(container.moveLeft ,config.rollBackDelay);
                 }else{
@@ -203,7 +216,7 @@ function Swipe(cfg){
                     //右滑动距离限制
 
                     container.moveLeft  += moveX + moveX/5;
-                    container.moveLeft = inlineSlideLimit(container.moveLeft );
+                    container.moveLeft = SlideLimit(container.moveLeft );
 
                     setTransform(container.moveLeft ,config.rollBackDelay);
 
@@ -220,7 +233,7 @@ function Swipe(cfg){
             //左右滑动
             if( Math.abs(moveX) > Math.abs(moveY) ){
             	//限制滑动距离
-            	container.moveLeft = inlineSlideLimit(container.moveLeft );  
+            	container.moveLeft = SlideLimit(container.moveLeft );  
                 setTransform(container.moveLeft ,config.rollBackDelay);
             }else{
             //上下滑动
@@ -245,20 +258,12 @@ function Swipe(cfg){
                 this.moveleft  += pressSlideValue(clientX);
 
                 //块级对拖动做限制
-                //container.moveLeft < 0 右拖动限制
-                //Math.abs(container.moveLeft) + viem.totalWidth ) < clientWidth 左拖动限制 
                 var clientWidth = item.dom[this.index].clientWidth;
-
-                if( this.moveleft  + config.rollBack > clientWidth){
-                    this.moveleft  = clientWidth-config.rollBack;
-                }else if( -(this.moveleft) + config.rollBack > clientWidth ){
-                    this.moveleft  = -(clientWidth - config.rollBack); 
-                }
+                this.moveleft  = blockPressSlideLimit(this.moveleft ,clientWidth);
 
                 setTransform(container.moveLeft+this.moveleft  ,config.rollBackDelay);
-
             }else{
-                //上下滑动未处理
+            //上下滑动未处理
             }
         },
         //松手之后的滑动处理
@@ -284,59 +289,15 @@ function Swipe(cfg){
             var moveX  = end.x - start.x,
                 moveY = end.y - start.y;
             //左右滑动
-            if( Math.abs(moveX) > Math.abs(moveY) ){   
-                //左右滑动
-                //计算滑动距离 翻页还是后退
-                //是否启用按住滑动
-                if(!config.pressSwipeFlag){
-                    var move = item.dom[this.index].clientWidth;
-                    if(moveX > 0){
-                       container.moveLeft += move;
-                       this.index--;
-                       if(this.index < 0){
-                            this.index = 0;
-                       } 
-                    }else{
-                       container.moveLeft -= move; 
-                       this.index++;
-                       if(this.index > item.length-1){
-                            this.index = item.length-1;
-                       }
-                    }
-                }else{
-                    var move = 0,
-                        len = this.index===0? 1 :this.index+1;
-                    for(var i =0; i<len ;i++){
-                        move += item.dom[i].clientWidth;
-                    }
-                    if(moveX > 0){
-                       container.moveLeft += move-Math.abs(container.moveLeft);
-                       this.index--;
-                       if(this.index < 0){
-                            this.index = 0;
-                       } 
-                    }else{
-                       container.moveLeft -= move-Math.abs(container.moveLeft); 
-                       this.index++;
-                       if(this.index > item.length-1){
-                            this.index = item.length-1;
-                       }
-                    }
-                }
-                
-
+            if( Math.abs(moveX) > Math.abs(moveY) ){          
+                //翻页处理
+                container.moveLeft  = this.slideMove(false,moveX);
                 //左右滑动限制
-                if( (-container.moveLeft)+viem.totalWidth  >= item.totalWidth ){
-                    //左滑动
-                    container.moveLeft = -(item.totalWidth - viem.totalWidth);
-                }else if(container.moveLeft > 0){
-                    //右滑动
-                    container.moveLeft = 0;
-                }
+                container.moveLeft = SlideLimit(container.moveLeft );
                 //开始滑动
                 setTransform(container.moveLeft ,config.rollBackDelay);
             }else{
-                //上下滑动
+            //上下滑动
             }
         },
         //滑动回弹
@@ -346,44 +307,90 @@ function Swipe(cfg){
             var moveX  = end.x - start.x,
                 moveY = end.y - start.y;
 
-
             //左右滑动
             if( Math.abs(moveX) > Math.abs(moveY) ){ 
+                //翻页处理
+                container.moveLeft  = this.slideMove(true,moveX,this.moveleft);
+                //左右滑动距离限制
+                container.moveLeft = SlideLimit(container.moveLeft );
 
-                //滑动面积要超过当前块面积的百分之30 才做翻页处理
-                if( Math.abs(this.moveleft) > item.dom[this.index].clientWidth/3){
-                    var move = 0,
+                setTransform(container.moveLeft ,config.rollBackDelay);
+            }else{
+            //上下滑动
+            } 
+        },
+        //块翻页处理
+        //@rollBack true  =回弹翻页 
+        //@rollBack false =快速滑动翻页
+        //@direction >0 向右 <0向左
+        //@value = 当前移动量 快速滑动的时候不输入
+        //返回翻页移动量
+        slideMove : function(rollBack,direction,value){
+        	var moveleft = container.moveLeft,
+        		move = 0;
+
+        	if(rollBack){
+        		 //滑动面积要超过当前块面积的百分之30 才做翻页处理
+                if( Math.abs(value) > item.dom[this.index].clientWidth*config.blockSlideLimit){
                     len = this.index===0? 1 : this.index+1;
                     for(var i =0; i<len ;i++){
                         move += item.dom[i].clientWidth;
                     }
-                    if(moveX > 0){
-                       container.moveLeft += move-Math.abs(container.moveLeft);
+                    if(direction > 0){
+                       moveleft += move-Math.abs(container.moveLeft);
                        this.index--;
                        if(this.index < 0){
                             this.index = 0;
                        } 
                     }else{
-                       container.moveLeft -= move-Math.abs(container.moveLeft); 
+                       moveleft -= move-Math.abs(container.moveLeft); 
                        this.index++;
                        if(this.index > item.length-1){
                             this.index = item.length-1;
                        }
                     }
                 }
+        	}else{
+        		//左右滑动
+                //计算滑动距离 翻页还是后退
+                //是否启用按住滑动
+                if(!config.pressSwipeFlag){
+                    move = item.dom[this.index].clientWidth;
+                    if(direction > 0){
+                       moveleft += move;
+                       this.index--;
+                       if(this.index < 0){
+                            this.index = 0;
+                       } 
+                    }else{
+                       moveleft -= move; 
+                       this.index++;
+                       if(this.index > item.length-1){
+                            this.index = item.length-1;
+                       }
+                    }
+                }else{
+                    var len = this.index===0? 1 :this.index+1;
+                    for(var i =0; i<len ;i++){
+                        move += item.dom[i].clientWidth;
+                    }
+                    if(direction > 0){
+                       moveleft += move-Math.abs(container.moveLeft);
+                       this.index--;
+                       if(this.index < 0){
+                            this.index = 0;
+                       } 
+                    }else{
+                       moveleft -= move-Math.abs(container.moveLeft); 
+                       this.index++;
+                       if(this.index > item.length-1){
+                            this.index = item.length-1;
+                       }
+                    }
+                }  
+        	}
 
-                //右滑动距离限制
-                if(container.moveLeft > 0){
-                    container.moveLeft = 0;
-                //左滑动距离限制
-                }else if( (-container.moveLeft)+viem.totalWidth  >= item.totalWidth  ){
-                    container.moveLeft = -(item.totalWidth - viem.totalWidth);
-                }
-
-                setTransform(container.moveLeft ,config.rollBackDelay);
-            }else{
-            //上下滑动
-            } 
+        	return moveleft;
         }
     };
     /*****************初始化**********************/    
