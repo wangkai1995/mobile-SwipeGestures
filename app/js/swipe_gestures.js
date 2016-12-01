@@ -3,6 +3,14 @@ window.onload = function(){
     var swipe = Swipe({
         rollBack: 150
     });
+
+    setTimeout(function(){
+    	swipe.setMoveValue(-1690,true);
+
+    	console.log(swipe.getMoveValue());
+
+        console.log(swipe.getBlockIndex());
+    },2000);
 };
 
 
@@ -71,6 +79,85 @@ function Swipe(cfg){
             y : 0,
             time : 0
         };
+
+
+    /***************对外提供的方法****************/
+    //返回移动量
+    swipe.getMoveValue = function(){
+    	return container.moveLeft;
+    };
+    //返回块滑动当前元素索引
+    swipe.getBlockIndex = function(){
+        if(!config.inlineMode){
+            return block.index;
+        }
+        console.log('必须处于块移动模式','swipe');
+    };
+    //设置移动量
+    //@value 必须是数值类型 不大于0 不小于最长item长度
+    //@blockFlag 块模式 如果为true并且没有启用行模式 则设置块翻页
+    swipe.setMoveValue = function(value,blockFlag){
+    	if(typeof value === 'number'){
+    		if(value > 0){
+    			console.log('输入值大于零则默认等于0','swipe');
+    			value = 0;
+                container.moveLeft = value;
+                setTransform(container.moveLeft ,config.rollBackDelay);
+                return false;
+    		}else if(value < -(item.totalWidth-item.dom[item.length-1].clientWidth) ){
+    			console.log('输入值最小不能小于item集合的总长度','swipe');
+    			value = -(item.totalWidth-item.dom[item.length-1].clientWidth);
+                container.moveLeft = value;
+                setTransform(container.moveLeft ,config.rollBackDelay);
+                return false;
+    		}
+    		//是否块模式
+    		if(blockFlag && !config.inlineMode){
+                var range = 0;
+                for(var i=0; i<item.length; i++){
+                    if(Math.abs(value) < range){
+                        // 判断是否到达翻页阀值
+                        if(item.dom[i].clientWidth - (range -Math.abs(value) ) > item.dom[i-1].clientWidth*config.blockSlideLimit ){
+                            container.moveLeft = -(range);
+                            setTransform(container.moveLeft ,config.rollBackDelay);
+                            //设置元素索引
+                            block.index = i;
+                        }else{
+                            container.moveLeft = -(range-item.dom[i-1].clientWidth);
+                            setTransform(container.moveLeft ,config.rollBackDelay);
+                            //设置元素索引
+                            block.index = i-1;
+                        }
+                        return false;
+                    }else{
+                        range += item.dom[i].clientWidth;
+                    }
+                }
+    		}else{
+    			container.moveLeft = value;
+    			setTransform(container.moveLeft ,config.rollBackDelay);
+    		}
+    	}else{
+    		console.log('输入值必须是数值类型','swipe');
+    	}
+    };
+    //重置配置
+    //@cfg = 配置对象
+    //@resetInit = true 重新初始化
+    swipe.resetConfig = function(cfg,resetInit){
+        config.quickIsSlowDelay = !isUndefined(cfg.quickIsSlowDelay)? cfg.quickIsSlowDelay : config.quickIsSlowDelay;
+        config.slideTime = !isUndefined(cfg.slideTime)? cfg.slideTime : config.slideTime;
+        config.rollBack = !isUndefined(cfg.rollBack)? cfg.rollBack :  config.rollBack;
+        config.rollBackDelay = !isUndefined(cfg.rollBackDelay)? cfg.rollBackDelay : config.rollBackDelay;
+        config.pressSwipeFlag = !isUndefined(cfg.pressSwipeFlag)? cfg.pressSwipeFlag : config.pressSwipeFlag;
+        config.slowSlideFlag = !isUndefined(cfg.slowSlideFlag)? cfg.slowSlideFlag : config.slowSlideFlag;
+        config.inlineMode = !isUndefined(cfg.inlineMode)? cfg.inlineMode : config.inlineMode;
+        config.blockSlideLimit = !isUndefined(cfg.blockSlideLimit)? cfg.blockSlideLimit : config.blockSlideLimit;
+        if(resetInit){
+            init();
+        }
+    };
+
 
     /***************公共函数部分******************/
     //设置容器DOM的transform   
