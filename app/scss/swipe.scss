@@ -48,4 +48,20 @@
             box-sizing: border-box;
         }
     }
+    .swipe-page-list{
+        position: absolute;
+        left: 0px;
+        right: 0px;
+        bottom:0px;
+        height: 20%;
+        overflow: hidden;
+        text-align: center;
+        li{
+            display: inline-block;
+            margin-left: 3px;
+            border-radius: 50%;
+            background-color: transparent;
+            border-style:solid;
+        }
+    }
 }
