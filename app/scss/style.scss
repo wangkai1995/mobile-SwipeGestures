@@ -23,29 +23,12 @@
         }
     }
 }
-.war-footer{
-    position: absolute;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    height: 44px;
-    border-top: 1px solid #c8c8c8;
-    background-color: #fff;
-    color: #ff8000;
-    li{
-        float: left;
-        width: 33%;
-        font-weight: 700;
-        font-size: 14px;
-        margin-top: 12px;
-    }
-}
 .war-container{
     position: absolute;
     top:80px;
     left: 0px;
     right: 0px;
-    bottom:44px;
+    bottom:0px;
     
     .content{
         margin-top: 20px;
@@ -88,6 +71,8 @@
         }
     }   
 }
+
+
 .test_txt{
     margin-top: 20px;
     width: 100%;

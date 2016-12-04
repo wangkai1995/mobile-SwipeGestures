@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-    <script src="js/all.min.js" ></script>
+    <script src="js/swipe.min.js" ></script>
     <link rel="stylesheet" href="css/layout.min.css"/>
 </head>
 
@@ -68,20 +68,54 @@
                         <div class="swipe-item test-two blue">占位8</div>
                     </div>
                 </div>
-
-
             </div>
-
     </section>
 
+     <script  type="text/javascript" charset="utf-8" async defer>
+            window.onload = function(){
+                //头部标签
+                 var tab = Swipe({
+                    queryClass: 'list-tab',
+                    rollBack: 50,
+                    inlineMode: true,
+                    rollBackDelay:500
+                 });
 
-    <footer class="war-footer">
-        <ul>
-            <li>首页</li>
-            <li>订单</li>
-            <li>我的</li>
-        </ul>
-    </footer>
+                //不带page块级滑动
+                var swipe_block = Swipe({
+                    queryClass: 'list-container-one',
+                    rollBack: 150,
+                    quickIsSlowDelay: 500,
+                    rollBackDelay : 150,
+                    blockSlideLimit : 0.5
+                });
 
+                //带page块级滑动
+                var swipe_page = Swipe({
+                    queryClass: 'list-container-two',
+                    rollBack: 200,
+                    blockSlideLimit : 0.2,
+                    pageListMode: true,
+                    pageListClass: {
+                        borderColor:'#fff',
+                        borderWidth:'2px',
+                        active:'#000'
+                    }
+                });
+                
+                setTimeout(function(){
+                    swipe_block.setMoveValue(-1650,true);
+                    console.log(swipe_block.getMoveValue());
+                    console.log(swipe_block.getBlockIndex());
+                },2000);
+
+                setTimeout(function(){
+                    swipe_page.setIndexMove(2);
+                    console.log(swipe_page.getMoveValue());
+                    console.log(swipe_page.getBlockIndex());
+                },3000);
+
+            }
+     </script>
 </body>
 </html>

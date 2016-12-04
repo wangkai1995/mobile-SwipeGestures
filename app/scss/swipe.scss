@@ -58,10 +58,11 @@
         text-align: center;
         li{
             display: inline-block;
-            margin-left: 3px;
             border-radius: 50%;
             background-color: transparent;
             border-style:solid;
+            position:relative;
+            z-index: 10;
         }
     }
 }
