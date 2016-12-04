@@ -20,10 +20,20 @@ gulp.task('sass',function(){
     .pipe(sass())
     .pipe(cssmin())
     .pipe(rename({suffix:'.min'}))
-    .pipe(gulp.dest('dist/css'));
+    .pipe(gulp.dest('dist/css'))
     browserSync.reload();
 });
 
+//编译插件需要的CSS
+gulp.task('swipte-css',function(){
+    gulp.src(['app/scss/swipe.scss'])
+    .pipe(sourcemaps.init())
+    .pipe(sass())
+    .pipe(cssmin())
+    .pipe(gulp.dest(''))
+    .pipe(rename({suffix:'.min'}))
+    .pipe(gulp.dest(''))
+})
 
 
 //检测JS语法
@@ -48,11 +58,13 @@ gulp.task('htmlhint',function(){
 //编译js
 gulp.task('javascript',function(){
     gulp.src('app/js/*.js')
-    .pipe(concat('all.js'))
+    .pipe(concat('swipe.js'))
+    .pipe(gulp.dest(''))
     .pipe(gulp.dest('dist/js'))
     .pipe(rename({suffix : '.min'}))
     .pipe(uglify())
     .pipe(gulp.dest('dist/js'))
+    .pipe(gulp.dest(''))
     browserSync.reload();
 })
 
@@ -69,8 +81,8 @@ gulp.task('dev',function(){
 
 //串起来批处理
 gulp.task('watch',function(){
-    gulp.start('sass', 'jshint', 'htmlhint', 'javascript','dev');
-    gulp.watch('app/scss/*.scss', ['sass']);
+    gulp.start('sass', 'swipte-css','jshint', 'htmlhint', 'javascript','dev');
+    gulp.watch('app/scss/*.scss', ['sass','swipte-css']);
     gulp.watch('app/js/*.js', ['jshint', 'javascript']);
     gulp.watch('app/*.html', ['htmlhint']);
 })
