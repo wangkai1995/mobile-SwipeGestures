@@ -2,7 +2,7 @@
 ##简介
 ####这是一个基于CSS3的应用在移动端的左右滑动插件,有两种滑动模式:(分别为行滑动,块滑动)
 
-###[Demo](http://www.pzhwangkai.com/swipe/index.html/)`请调成移动设备模式刷新查看`
+###[Demo](http://www.pzhwangkai.com/swipe/index.html)`请调成移动设备模式刷新查看`
 
 ##使用以及配置
 ####支持一个页面下多个实例,但是需要每个实例HTML元素最外围标记不同的class来区分
