@@ -1,36 +1,14 @@
-
-window.onload = function(){
-    var swipe = Swipe({
-        queryClass : 'list-container-one',
-        rollBack: 150
-    });
-
-    var swipe_list = Swipe({
-        queryClass : 'list-container-two',
-        pageListMode: true,
-        rollBack: 150
-    });
-
-    var tab = Swipe({
-        queryClass : 'list-tab',
-        inlineMode : true,
-        pageListClass :{
-            borderColor:'#fff',
-            fontSize :'18px'
-        }
-    });
-
-    //不带页码的方法测试
-    setTimeout(function(){
-    	swipe.setMoveValue(-1690,true);
-    	console.log(swipe.getMoveValue());
-        console.log(swipe.getBlockIndex());
-    },2000);
-};
-
-
+/*
+ * html5 mobile swipte gestures
+ *
+ * 0.0.0  
+ * 暂不支持上下滑动 只能左右滑动  
+ *
+ * wangkai  
+ * 2016.12.4  china shenzhen
+ *
+*/
 function Swipe(cfg){
-
     /****************参数配置********************/
     var swipe = {};
     //判断参数是否设置
@@ -44,11 +22,13 @@ function Swipe(cfg){
     }
     //判断输入pageList的样式参数是否正确,不正确使用返回默认样式值替换
     function validtionListClass(obj){
-        var key = ['borderColor','borderWidth','width','height','active'];
+        var key = [];
         var classObj = pageListClass;
-
         if(typeof obj !== 'object'){
             return pageListClass;
+        }
+        for(var name in pageListClass){
+            key.push(name);
         }
         for( var item in obj){
             if(key.indexOf(item) !== -1){
@@ -77,8 +57,9 @@ function Swipe(cfg){
         borderWidth:'1px',
         width: '16px',
         height: '16px',
+        marginLeft: '5px',
         active:'#f30'
-    }
+    };
 
     //配置
     var config = {
@@ -119,7 +100,8 @@ function Swipe(cfg){
             moveTop:0           //向右移动距离
         },
         item = {
-            dom: '',
+            dom: [],
+            page: [],
             length: 0,
             totalWidth: 0
         };
@@ -138,11 +120,23 @@ function Swipe(cfg){
             y : 0,
             time : 0
         };
-
-
     /***************对外提供的方法****************/
+    //获取一些对外的属性 保存在 swipe中
+    function setSwipeAttribute(){
+        //容器的dom
+        swipe.container = container.dom;
+        //子节点的列表
+        swipe.itemList = item.dom;
+        //子节点的长度
+        swipe.length = item.length;
+        //容器的最大宽度
+        swipe.MaxWidth = item.totalWidth;
+        //视窗的宽度
+        swipe.screenWidth = viem.totalWidth;
+    }
     //返回移动量
     swipe.getMoveValue = function(){
+        //移动量
     	return container.moveLeft;
     };
     //返回块滑动当前元素索引
@@ -200,6 +194,17 @@ function Swipe(cfg){
     		console.log('输入值必须是数值类型','swipe');
     	}
     };
+    //块模式按照元素索引移动
+    //@index = 索引
+    swipe.setIndexMove = function(index){
+        if(config.pageListMode && !config.inlineMode){
+            if(index <0 || index > item.length-1){
+                console.log('索引越界','swipe');
+                return false;
+            }
+            block.clickPage(index);
+        }
+    };
     //重置配置
     //@cfg = 配置对象
     //@resetInit = true 重新初始化
@@ -210,7 +215,6 @@ function Swipe(cfg){
         config.rollBackDelay = !isUndefined(cfg.rollBackDelay)? cfg.rollBackDelay : config.rollBackDelay;
         config.pressSwipeFlag = !isUndefined(cfg.pressSwipeFlag)? cfg.pressSwipeFlag : config.pressSwipeFlag;
         config.slowSlideFlag = !isUndefined(cfg.slowSlideFlag)? cfg.slowSlideFlag : config.slowSlideFlag;
-        config.inlineMode = !isUndefined(cfg.inlineMode)? cfg.inlineMode : config.inlineMode;
         config.blockSlideLimit = !isUndefined(cfg.blockSlideLimit)? cfg.blockSlideLimit : config.blockSlideLimit;
         if(resetInit){
             init();
@@ -292,7 +296,37 @@ function Swipe(cfg){
         }
         return value;
     }
+    //添加样式
+    //@el=元素
+    //@classStyle=样式名 
+    function addClass(el,classStyle){
+        var reg = new RegExp( '/\s|^'+classStyle+'\s|$/' );
+        if(!el.className.match(reg) ){
+            el.className += ' '+classStyle;
+        }
+    }
+    //删除样式
+    //@el=元素
+    //@classStyle=样式名
+    function removeClass(el,classStyle){
+        var reg = new RegExp( '/\s|^'+classStyle+'\s|$/' );
+        if( el.className.match(reg) ){
+             el.className.replace(reg,'');
+        }
+    }
+    //激活对应的页码标签
+    //@index需要激活的索引
+    function activePage(index){
+        if(item.page.length !== 0){
+            for(var i =0; i<item.length ;i++){
+                 item.page[i].style.backgroundColor = 'transparent';
+                 if(i === index){
+                    item.page[i].style.backgroundColor = config.pageListClass['active'];
+                 }
+            }
 
+        }
+    }
 
     /***************内连模式滑动函数部分******************/ 
     var inline = {
@@ -413,14 +447,21 @@ function Swipe(cfg){
             }
         },
         //松手之后的滑动处理
-        letGoSwipe :function(){
+        //！！如果启用了页码索引 并且 el===li 则不启动快速滑动
+        //@el === 滑动范围中的元素
+        letGoSwipe :function(el){
             //判断快速滑动还是慢速滑动
             //@阀值设为500MS
             var moveTime = end.time - start.time;
-
             if(moveTime < config.quickIsSlowDelay){
-                //快速滑动
-                this.quickSlide();
+                //如果启用了页码索引 并且 el=li 则不启动快速滑动
+                if(!config.pageListMode && el.tagName !== 'LI'){
+                    //快速滑动
+                    this.quickSlide();
+                }else{
+                    //回弹
+                    this.rollBackSlide();
+                }
             }else{
                 //回弹
                 this.rollBackSlide();
@@ -465,6 +506,22 @@ function Swipe(cfg){
             //上下滑动
             } 
         },
+        //点击页码滚动
+        //@index = 当前点击的标签索引
+        clickPage:function(index){  
+            var move = 0;
+            if(index === 0){
+                move = item.dom[index].clientWidth
+            }else{
+                for(var i =0; i<index ;i++){
+                    move += item.dom[i].clientWidth;
+                }
+            }
+            container.moveLeft = -move;
+            this.index = index;  
+            setTransform(container.moveLeft ,config.rollBackDelay);
+            activePage(this.index); 
+        },
         //块翻页处理
         //@rollBack true  =回弹翻页 
         //@rollBack false =快速滑动翻页
@@ -476,7 +533,7 @@ function Swipe(cfg){
         		move = 0;
 
         	if(rollBack){
-        		 //滑动面积要超过当前块面积的百分之30 才做翻页处理
+        		//滑动面积要超过当前块面积的百分之30 才做翻页处理
                 if( Math.abs(value) > item.dom[this.index].clientWidth*config.blockSlideLimit){
                     len = this.index===0? 1 : this.index+1;
                     for(var i =0; i<len ;i++){
@@ -535,6 +592,10 @@ function Swipe(cfg){
                     }
                 }  
         	}
+            //是否启动页码模式 启动则激活对应的标签
+            if(config.pageListMode){
+                activePage(this.index);
+            }
 
         	return moveleft;
         }
@@ -558,14 +619,7 @@ function Swipe(cfg){
 
         touchEventInit();
         pageListInit();
-    }
-
-    /******************滑动事件*******************/
-    //注册滑动事件
-    function touchEventInit(){
-        container.war.addEventListener('touchstart',touchStartEvent,false);
-        container.war.addEventListener('touchmove',touchMoveEvent,false);
-        container.war.addEventListener('touchend',touchEndEvent,false);
+        setSwipeAttribute();
     }
     //索引列表初始化
     function pageListInit(){
@@ -579,19 +633,45 @@ function Swipe(cfg){
                         li.style[key] = config.pageListClass[key];
                     }   
                 }
+                //第一个元素初始化的时候默认选中
+                if(i === 0){
+                    li.style.backgroundColor = config.pageListClass['active'];
+                }
+                item.page.push(li);
+                //设置索引标志 并且赋值点击事件
+                li.setAttribute('data-index',i);
+                li.addEventListener('click',pageListClickEvent);
+                //标签插入列表中
                 list.appendChild(li);
             }
-                
+
             var div = document.createElement('div');
             div.className = 'swipe-page-list';
             div.appendChild(list);
             container.war.appendChild(div);
         }
     }
+    //索引列表点击事件
+    function pageListClickEvent(event){
+        event.stopPropagation();          //阻止冒泡传播
+        var index = parseInt(event.srcElement.getAttribute('data-index'));
+        block.clickPage(index);
+    }
+
+    /******************滑动事件*******************/
+    //注册滑动事件
+    function touchEventInit(){
+        container.war.addEventListener('touchstart',touchStartEvent,false);
+        container.war.addEventListener('touchmove',touchMoveEvent,false);
+        container.war.addEventListener('touchend',touchEndEvent,false);
+    }
     //滑动开始事件
     function touchStartEvent(event){
         event.stopPropagation();          //阻止冒泡传播
-        event.preventDefault();           //阻止默认行为 这个很重要 在有滑动翻页的浏览器下 不禁止这个行为会导致翻页
+        if(!config.pageListMode){
+            //在启动了索引模式下 这个阻止默认行为不能禁止 不然无法触发索引标签的click
+            event.preventDefault();           
+        }   
         start.x = event.changedTouches[0].clientX;
         start.y = event.changedTouches[0].clientY;
         start.time = new Date().getTime();
@@ -618,7 +698,10 @@ function Swipe(cfg){
     //滑动结束事件
     function touchEndEvent(event){
         event.stopPropagation();      //阻止冒泡传播
-        event.preventDefault();       //阻止默认行为 这个很重要 在有滑动翻页的浏览器下 不禁止这个行为会导致翻页
+        if(!config.pageListMode){
+            //在启动了索引模式下 这个阻止默认行为不能禁止 不然无法触发索引标签的click
+            event.preventDefault();           
+        }
         end.x = event.changedTouches[0].clientX;
         end.y = event.changedTouches[0].clientY;
         end.time = new Date().getTime();
@@ -627,7 +710,7 @@ function Swipe(cfg){
         if(config.inlineMode){
             inline.letGoSwipe();
         }else{
-            block.letGoSwipe();
+            block.letGoSwipe(event.srcElement);
         }
     }
     
@@ -638,3 +721,5 @@ function Swipe(cfg){
 
     return swipe;
 }
+
+
