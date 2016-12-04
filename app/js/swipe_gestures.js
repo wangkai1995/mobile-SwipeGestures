@@ -509,14 +509,17 @@ function Swipe(cfg){
         //点击页码滚动
         //@index = 当前点击的标签索引
         clickPage:function(index){  
+
+            console.log(index);
             var move = 0;
             if(index === 0){
-                move = item.dom[index].clientWidth
+                move = 0;
             }else{
                 for(var i =0; i<index ;i++){
                     move += item.dom[i].clientWidth;
                 }
             }
+            console.log(move);
             container.moveLeft = -move;
             this.index = index;  
             setTransform(container.moveLeft ,config.rollBackDelay);
