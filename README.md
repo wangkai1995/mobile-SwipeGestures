@@ -71,22 +71,22 @@
     `返回的实例化对象的方法`
 
     //返回移动量
-    swipe.getMoveValue();
+    test_swipe.getMoveValue();
     //返回块滑动当前元素索引
-    swipe.getBlockIndex();
+    test_swipe.getBlockIndex();
     //设置移动量
     //@value 必须是数值类型 不大于0 不小于最长item长度
     //@blockFlag 块模式 如果为true并且没有启用行模式 则设置块翻页
-    swipe.setMoveValue(value,blockFlag);
+    test_swipe.setMoveValue(value,blockFlag);
     //块模式按照元素滑动索引移动
     //@index = 索引
-    swipe.setIndexMove(index);
+    test_swipe.setIndexMove(index); `注意这个索引是从0开始计算`
     //重置配置
     //@cfg = 配置对象
     //@resetInit = true 重新初始化
-    swipe.resetConfig(cfg,resetInit);
+    test_swipe.resetConfig(cfg,resetInit);
 
-    `关于swipe.resetConfig(cfg,resetInit)方法的特别说明！`
+    `关于test_swipe.resetConfig(cfg,resetInit)方法的特别说明！`
     /*
      *cfg对象只包括重置以下属性
      *   quickIsSlowDelay
