@@ -671,10 +671,8 @@ function Swipe(cfg){
     //滑动开始事件
     function touchStartEvent(event){
         event.stopPropagation();          //阻止冒泡传播
-        if(!config.pageListMode){
-            //在启动了索引模式下 这个阻止默认行为不能禁止 不然无法触发索引标签的click
-            event.preventDefault();           
-        }   
+        //这个阻止默认行为不能禁止 不然无法触发索引标签的click
+        //event.preventDefault();              
         start.x = event.changedTouches[0].clientX;
         start.y = event.changedTouches[0].clientY;
         start.time = new Date().getTime();
@@ -701,10 +699,8 @@ function Swipe(cfg){
     //滑动结束事件
     function touchEndEvent(event){
         event.stopPropagation();      //阻止冒泡传播
-        if(!config.pageListMode){
-            //在启动了索引模式下 这个阻止默认行为不能禁止 不然无法触发索引标签的click
-            event.preventDefault();           
-        }
+        //这个阻止默认行为不能禁止 不然无法触发索引标签的click
+        //event.preventDefault();           
         end.x = event.changedTouches[0].clientX;
         end.y = event.changedTouches[0].clientY;
         end.time = new Date().getTime();
